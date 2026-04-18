@@ -1,0 +1,22 @@
+version: '3'
+services:
+  nginx:
+    image: ccr.ccs.tencentyun.com/library/nginx:latest
+    container_name: nginx-container
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: Root@2026
+      MYSQL_DATABASE: ops_db
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
