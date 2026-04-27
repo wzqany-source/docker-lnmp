@@ -1,0 +1,50 @@
+version: '3.8'  # Docker Compose文件格式版本
+
+services:
+  # MySQL 8.0 数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: lnmp-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456  # root用户密码
+    volumes:
+      - mysql_data:/var/lib/mysql  # 数据库文件持久化
+    networks:
+      - lnmp-net  # 加入自定义网络，供PHP连接
+    restart: unless-stopped  # 宿主机重启后自动恢复
+
+  # PHP-FPM 8.1 解析服务
+  php:
+    image: php:8.1-fpm
+    container_name: lnmp-php
+    volumes:
+      - ./html:/var/www/html  # 与Nginx共享网站文件
+    networks:
+      - lnmp-net
+    depends_on:
+      - mysql  # 确保MySQL先启动
+    restart: unless-stopped
+
+  # Nginx Web服务器
+  nginx:
+    image: nginx:alpine
+    container_name: lnmp-nginx
+    ports:
+      - "8080:80"  # 宿主机8080映射到容器80（避开宿主机Nginx）
+    volumes:
+      - ./html:/var/www/html  # 网站文件
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf  # 自定义配置
+    networks:
+      - lnmp-net
+    depends_on:
+      - php  # 确保PHP-FPM先启动
+    restart: unless-stopped
+
+# 命名卷：MySQL数据持久化
+volumes:
+  mysql_data:
+
+# 自定义bridge网络：容器间通过服务名通信
+networks:
+  lnmp-net:
+    driver: bridge
