@@ -9,8 +9,9 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # root用户密码
     volumes:
       - mysql_data:/var/lib/mysql  # 数据库文件持久化
+      - ./logs/mysql:/var/log/mysql   
     networks:
-      - lnmp-net  # 加入自定义网络
+         - lnmp-net  # 加入自定义网络
     restart: unless-stopped  # 宿主机重启后自动恢复
     healthcheck:
       test: mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} || exit 1
@@ -40,6 +41,7 @@ services:
     volumes:
       - ./html:/var/www/html  # 网站文件
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf  # 反向代理配置
+      - ./logs/nginx:/var/log/nginx
     networks:
       - lnmp-net
     depends_on:
