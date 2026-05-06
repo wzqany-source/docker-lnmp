@@ -6,12 +6,18 @@ services:
     image: mysql:8.0
     container_name: lnmp-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 123456  # root用户密码
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # root用户密码
     volumes:
       - mysql_data:/var/lib/mysql  # 数据库文件持久化
     networks:
       - lnmp-net  # 加入自定义网络
     restart: unless-stopped  # 宿主机重启后自动恢复
+    healthcheck:
+      test: mysqladmin ping -h localhost -u root -p${MYSQL_ROOT_PASSWORD} || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Apache + PHP 8.1 应用服务（项目二架构）
   apache:
@@ -39,7 +45,12 @@ services:
     depends_on:
       - apache  # 确保Apache先启动
     restart: unless-stopped
-
+    healthcheck:
+      test: curl -f http://localhost/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 # 命名卷：MySQL数据持久化
 volumes:
   mysql_data:
